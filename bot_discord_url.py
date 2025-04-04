@@ -202,4 +202,3 @@ async def slash_decompiler(interaction: discord.Interaction, protocol: str, cont
 async def protocol_autocomplete(interaction: discord.Interaction, current: str):
     choices = ['message', 'qr']
     return [app_commands.Choice(name=choice, value=choice) for choice in choices if current.lower() in choice.lower()]
-ๅ

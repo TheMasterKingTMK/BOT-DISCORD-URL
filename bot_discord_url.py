@@ -24,6 +24,7 @@ def encode_url(protocol: str, url: str) -> str:
     encoded_bytes = base64.urlsafe_b64encode(url.encode('utf-8'))
     return encoded_bytes.decode('utf-8')
 
+
 # ฟังก์ชันถอดรหัส
 def decode_url(message: str) -> str:
     try:

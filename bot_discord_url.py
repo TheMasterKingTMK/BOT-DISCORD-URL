@@ -19,7 +19,7 @@ async def on_ready():
 
 # ฟังก์ชันเข้ารหัส
 def encode_url(protocol: str, url: str) -> str:
-    if not url.startswith(protocol):
+    if not (url.startswith("http://") or url.startswith("https://")):
         url = protocol + "://" + url
     encoded_bytes = base64.urlsafe_b64encode(url.encode('utf-8'))
     return encoded_bytes.decode('utf-8')

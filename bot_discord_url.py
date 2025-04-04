@@ -2,7 +2,6 @@ import os
 import discord
 import base64
 import qrcode
-import uuid
 from io import BytesIO
 from discord.ext import commands
 from discord import app_commands
@@ -42,7 +41,7 @@ def decode_url(message: str) -> str:
 @app_commands.describe(protocol="โปรโตคอล (http, https, qr)", url="ลิงก์ที่ต้องการเข้ารหัส")
 async def slash_compiler(interaction: discord.Interaction, protocol: str, url: str):
     if protocol not in ["http", "https", "qr"]:
-        await interaction.response.send_message("❌ โปรโตคอลไม่ถูกต้อง! เลือกได้แค่ `http`, `https` หรือ `qr`", ephemeral=True)
+        await interaction.response.send_message("❌ โปรโตคอลไม่ถูกต้อง! เลือกได้แค่ http, https หรือ qr", ephemeral=True)
         return
 
     if protocol == "qr":
@@ -52,17 +51,15 @@ async def slash_compiler(interaction: discord.Interaction, protocol: str, url: s
         buffer = BytesIO()
         img.save(buffer, format="PNG")
         buffer.seek(0)
-
-        # สร้างชื่อไฟล์สุ่ม
-        random_filename = f"qrcode_{uuid.uuid4().hex}.png"
-        file = discord.File(buffer, filename=random_filename)
-
+        file = discord.File(buffer, filename="qrcode.png")
         await interaction.response.send_message(content="🧾 สร้าง QR Code สำเร็จ!", file=file)
     else:
         encoded = encode_url(protocol, url)
         embed = discord.Embed(
             title="🔒 เข้ารหัส URL สำเร็จ!",
-            description=f"```\n{encoded}\n```",
+            description=f"
+\n{encoded}\n
+",
             color=discord.Color.green()
         )
         embed.set_footer(text="โดยคำสั่ง: /compiler")
@@ -85,7 +82,9 @@ async def slash_decompiler(interaction: discord.Interaction, message: str):
     decoded = decode_url(message)
     embed = discord.Embed(
         title="🔓 ถอดรหัส URL สำเร็จ!" if not decoded.startswith("❌") else "❌ ไม่สามารถถอดรหัสได้",
-        description=f"```\n{decoded}\n```",
+        description=f"
+\n{decoded}\n
+",
         color=discord.Color.blue() if not decoded.startswith("❌") else discord.Color.red()
     )
     embed.set_footer(text="โดยคำสั่ง: /decompiler")
@@ -121,6 +120,5 @@ async def slash_commands(interaction: discord.Interaction):
     embed.set_footer(text="สำหรับคำสั่งอื่นๆ สามารถติดต่อผู้ดูแลบอท.")
     await interaction.response.send_message(embed=embed)
 
-# เรียกเซิร์ฟเวอร์และรันบอท
 server_on()
 bot.run(os.getenv("TOKEN"))

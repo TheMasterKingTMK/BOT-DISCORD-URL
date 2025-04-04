@@ -122,3 +122,5 @@ async def slash_commands(interaction: discord.Interaction):
 
 server_on()
 bot.run(os.getenv("TOKEN"))
+
+

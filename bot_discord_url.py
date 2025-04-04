@@ -2,6 +2,7 @@ import os
 import discord
 import base64
 import qrcode
+import uuid
 from io import BytesIO
 from discord.ext import commands
 from discord import app_commands
@@ -51,7 +52,11 @@ async def slash_compiler(interaction: discord.Interaction, protocol: str, url: s
         buffer = BytesIO()
         img.save(buffer, format="PNG")
         buffer.seek(0)
-        file = discord.File(buffer, filename="qrcode.png")
+
+        # สร้างชื่อไฟล์สุ่ม
+        random_filename = f"qrcode_{uuid.uuid4().hex}.png"
+        file = discord.File(buffer, filename=random_filename)
+
         await interaction.response.send_message(content="🧾 สร้าง QR Code สำเร็จ!", file=file)
     else:
         encoded = encode_url(protocol, url)
@@ -116,5 +121,6 @@ async def slash_commands(interaction: discord.Interaction):
     embed.set_footer(text="สำหรับคำสั่งอื่นๆ สามารถติดต่อผู้ดูแลบอท.")
     await interaction.response.send_message(embed=embed)
 
+# เรียกเซิร์ฟเวอร์และรันบอท
 server_on()
 bot.run(os.getenv("TOKEN"))

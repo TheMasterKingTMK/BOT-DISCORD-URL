@@ -139,3 +139,67 @@ async def slash_commands(interaction: discord.Interaction):
 
 server_on()
 bot.run(os.getenv("TOKEN"))
+# ==========================
+# ⌨️ Slash command: /decompiler
+# ==========================
+@bot.tree.command(name="decompiler", description="ถอดรหัส URL จากข้อความหรือ QR Code")
+@app_commands.describe(
+    protocol="ประเภทการถอดรหัส (message, qr)",
+    content="ข้อความที่เข้ารหัสไว้หรือรูป QR Code"
+)
+async def slash_decompiler(interaction: discord.Interaction, protocol: str, content: str | discord.Attachment):
+    try:
+        if protocol not in ["message", "qr"]:
+            await interaction.response.send_message("❌ โปรโตคอลไม่ถูกต้อง! เลือกได้แค่ message หรือ qr", ephemeral=True)
+            return
+
+        if protocol == "message":
+            if isinstance(content, discord.Attachment):
+                await interaction.response.send_message("❌ กรุณาใส่ข้อความที่ต้องการถอดรหัส ไม่ใช่ไฟล์", ephemeral=True)
+                return
+            decoded = decode_url(content)
+            embed = discord.Embed(
+                title="🔓 ถอดรหัส URL สำเร็จ!" if not decoded.startswith("❌") else "❌ ไม่สามารถถอดรหัสได้",
+                description=f"\n{decoded}\n",
+                color=discord.Color.blue() if not decoded.startswith("❌") else discord.Color.red()
+            )
+            embed.set_footer(text="โดยคำสั่ง: /decompiler")
+            await interaction.response.send_message(embed=embed)
+            
+        else:  # protocol == "qr"
+            if not isinstance(content, discord.Attachment):
+                await interaction.response.send_message("❌ กรุณาแนบรูป QR Code", ephemeral=True)
+                return
+                
+            if not content.content_type.startswith('image/'):
+                await interaction.response.send_message("❌ กรุณาแนบไฟล์รูปภาพเท่านั้น", ephemeral=True)
+                return
+                
+            # อ่านรูป QR
+            qr_bytes = await content.read()
+            img = Image.open(BytesIO(qr_bytes))
+            
+            # ถอดรหัส QR
+            try:
+                decoded = decode(img)[0].data.decode('utf-8')
+                embed = discord.Embed(
+                    title="🔓 ถอดรหัส QR Code สำเร็จ!",
+                    description=f"\n{decoded}\n",
+                    color=discord.Color.blue()
+                )
+                embed.set_footer(text="โดยคำสั่ง: /decompiler")
+                await interaction.response.send_message(embed=embed)
+            except:
+                await interaction.response.send_message("❌ ไม่สามารถอ่าน QR Code ได้", ephemeral=True)
+                
+    except Exception as e:
+        await interaction.response.send_message(f"❌ เกิดข้อผิดพลาด: {str(e)}", ephemeral=True)
+
+# ==========================
+# Autocomplete สำหรับ protocol
+# ==========================
+@slash_decompiler.autocomplete('protocol')
+async def protocol_autocomplete(interaction: discord.Interaction, current: str):
+    choices = ['message', 'qr']
+    return [app_commands.Choice(name=choice, value=choice) for choice in choices if current.lower() in choice.lower()]
+ๅ

@@ -19,11 +19,10 @@ async def on_ready():
 
 # ฟังก์ชันเข้ารหัส
 def encode_url(protocol: str, url: str) -> str:
-    if not (url.startswith("http://") or url.startswith("https://")):
+    if not url.startswith(protocol):
         url = protocol + "://" + url
     encoded_bytes = base64.urlsafe_b64encode(url.encode('utf-8'))
     return encoded_bytes.decode('utf-8')
-
 
 # ฟังก์ชันถอดรหัส
 def decode_url(message: str) -> str:
@@ -40,15 +39,13 @@ def decode_url(message: str) -> str:
 @app_commands.describe(protocol="โปรโตคอล (http หรือ https)", url="ลิงก์ที่ต้องการเข้ารหัส")
 async def slash_compiler(interaction: discord.Interaction, protocol: str, url: str):
     if protocol not in ["http", "https"]:
-        await interaction.response.send_message("❌ โปรโตคอลไม่ถูกต้อง! เลือกได้แค่ http หรือ https", ephemeral=True)
+        await interaction.response.send_message("❌ โปรโตคอลไม่ถูกต้อง! เลือกได้แค่ `http` หรือ `https`", ephemeral=True)
         return
 
     encoded = encode_url(protocol, url)
     embed = discord.Embed(
         title="🔒 เข้ารหัส URL สำเร็จ!",
-        description=f"
-\n{encoded}\n
-",
+        description=f"```\n{encoded}\n```",
         color=discord.Color.green()
     )
     embed.set_footer(text="โดยคำสั่ง: /compiler")
@@ -63,9 +60,7 @@ async def slash_decompiler(interaction: discord.Interaction, message: str):
     decoded = decode_url(message)
     embed = discord.Embed(
         title="🔓 ถอดรหัส URL สำเร็จ!" if not decoded.startswith("❌") else "❌ ไม่สามารถถอดรหัสได้",
-        description=f"
-\n{decoded}\n
-",
+        description=f"```\n{decoded}\n```",
         color=discord.Color.blue() if not decoded.startswith("❌") else discord.Color.red()
     )
     embed.set_footer(text="โดยคำสั่ง: /decompiler")
